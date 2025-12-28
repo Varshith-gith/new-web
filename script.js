@@ -1,14 +1,24 @@
-// Navigation Scroll Effect
+// Navigation Scroll Effect with throttling
 const navbar = document.getElementById('navbar');
 const backToTop = document.getElementById('backToTop');
 
-window.addEventListener('scroll', () => {
+let ticking = false;
+
+function updateNavbar() {
     if (window.scrollY > 100) {
         navbar.classList.add('scrolled');
         backToTop.classList.add('show');
     } else {
         navbar.classList.remove('scrolled');
         backToTop.classList.remove('show');
+    }
+    ticking = false;
+}
+
+window.addEventListener('scroll', () => {
+    if (!ticking) {
+        window.requestAnimationFrame(updateNavbar);
+        ticking = true;
     }
 });
 
@@ -68,12 +78,12 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe service cards and feature cards
-document.querySelectorAll('.service-card, .feature-card, .contact-item').forEach(card => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(30px)';
-    card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(card);
+// Observe service cards, feature cards, contact items, and section headers
+document.querySelectorAll('.service-card, .feature-card, .contact-item, .section-header').forEach(element => {
+    element.style.opacity = '0';
+    element.style.transform = 'translateY(30px)';
+    element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(element);
 });
 
 // Contact Form Handling
@@ -104,15 +114,19 @@ contactForm.addEventListener('submit', (e) => {
     contactForm.reset();
 });
 
-// Add active class to current section in navigation
+// Add active class to current section in navigation with throttling
 const sections = document.querySelectorAll('section[id]');
 
-window.addEventListener('scroll', () => {
+let sectionTicking = false;
+
+function updateActiveSection() {
     let current = '';
+    const scrollPosition = window.scrollY + 100;
+    
     sections.forEach(section => {
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
-        if (window.scrollY >= sectionTop - 200) {
+        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
             current = section.getAttribute('id');
         }
     });
@@ -123,16 +137,18 @@ window.addEventListener('scroll', () => {
             link.classList.add('active');
         }
     });
-});
+    
+    sectionTicking = false;
+}
 
-// Add parallax effect to hero section
 window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero');
-    if (hero && scrolled < window.innerHeight) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+    if (!sectionTicking) {
+        window.requestAnimationFrame(updateActiveSection);
+        sectionTicking = true;
     }
 });
+
+// Removed parallax effect to prevent scroll skipping issues
 
 // Service card hover effect enhancement
 document.querySelectorAll('.service-card').forEach(card => {
